@@ -1,0 +1,138 @@
+options {
+  STATIC = true;
+}
+
+PARSER_BEGIN(FileParser)
+package org.softhouse.javacc;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.parsers.ParserConfigurationException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+public class FileParser {
+  public static void main(FileInputStream inputStream) {
+    FileParser parser = new FileParser(inputStream);
+  }
+
+  public Document parse()  throws ParserConfigurationException, ParseException {
+      DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+      DocumentBuilder builder = factory.newDocumentBuilder();
+
+      Document doc = builder.newDocument();
+
+      this.readFile(doc);
+      return doc;
+  }
+
+  public static void printDocument(Document doc, OutputStream out) throws TransformerException {
+      TransformerFactory tf = TransformerFactory.newInstance();
+      Transformer transformer = tf.newTransformer();
+      transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+      transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+
+      transformer.transform(new DOMSource(doc),
+           new StreamResult(new OutputStreamWriter(out, StandardCharsets.UTF_8)));
+  }
+
+  public static void printDocument(Document doc, String fileName) throws TransformerException, IOException {
+        TransformerFactory tf = TransformerFactory.newInstance();
+        Transformer transformer = tf.newTransformer();
+        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+
+        FileWriter writer = new FileWriter(fileName);
+        StreamResult result = new StreamResult(writer);
+        transformer.transform(new DOMSource(doc), result);
+    }
+}
+
+
+PARSER_END(FileParser)
+
+SKIP :
+{
+ "\n"
+| "\r"
+}
+
+TOKEN : {
+<FAMILY: ["F"]>
+| <PERSON: ["P"]>
+| <ADDRESS: ["A"]>
+| <PHONE: ["T"]>
+| <NUMBER: (["0"-"9"]){2,4}("-")?(["0"-"9"]){0,6}>
+| <TEXT: ["a"-"z", "A"-"Z", "0"-"9"](["a"-"z", "A"-"Z", " ", "0"-"9", ",", "."])+>
+
+}
+
+void readFile(Document doc): {
+      Element people = doc.createElement("people");
+      doc.appendChild(people);
+      }
+{
+  (person(doc, people))* <EOF>
+}
+
+void person(Document doc, Element parent) : {
+    Element element;
+ }
+{
+  <PERSON> {element = doc.createElement("person"); parent.appendChild(element);}
+  textElement(doc, element, "firstname")
+  textElement(doc, element, "lastname")
+  (family(doc, element) | telephone(doc, element) | adress(doc, element))*
+}
+
+void family(Document doc, Element parent) : {
+      Element element;
+ }
+{
+  <FAMILY> {element = doc.createElement("family"); parent.appendChild(element);}
+  textElement(doc, element, "name")
+  numberElement(doc, element, "born")
+  (telephone(doc, element) | adress(doc, element))+
+}
+
+void adress(Document doc, Element parent): {
+      Element element;
+ }
+{
+  <ADDRESS> {element = doc.createElement("address"); parent.appendChild(element);}
+  textElement(doc, element, "street")
+  textElement(doc, element, "city")
+  (numberElement(doc, element, "postcode"))?
+}
+
+void telephone(Document doc, Element parent) : {
+      Element element;
+ }
+{
+  <PHONE> {element = doc.createElement("phone"); parent.appendChild(element);}
+  numberElement(doc, element, "mobile")
+  numberElement(doc, element, "landline")
+}
+
+void numberElement(Document doc, Element parent, String tag) : {
+   Element element = doc.createElement(tag);
+   Token t;
+ }
+{
+  "|" t=<NUMBER> {element.appendChild(doc.createTextNode(t.image)); parent.appendChild(element);}
+}
+
+void textElement(Document doc, Element parent, String tag) : {
+   Element element = doc.createElement(tag);
+   Token t;
+}
+{
+  "|" t=<TEXT> {element.appendChild(doc.createTextNode(t.image)); parent.appendChild(element);}
+}

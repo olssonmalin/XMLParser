@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.softhouse</groupId>
+    <artifactId>XMLParser</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>javacc-maven-plugin</artifactId>
+                <version>3.0.1</version>
+                <executions>
+                    <execution>
+                        <id>javacc</id>
+                        <goals>
+                            <goal>javacc</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <includes>
+                        <include>**/FileParser.jj</include>
+                    </includes>
+                    <sourceDirectory>${basedir}/src/main/java/org/softhouse/javacc</sourceDirectory>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    <!-- https://mvnrepository.com/artifact/net.java.dev.javacc/javacc -->
+    <dependencies>
+    <dependency>
+        <groupId>net.java.dev.javacc</groupId>
+        <artifactId>javacc</artifactId>
+        <version>7.0.13</version>
+    </dependency>
+    </dependencies>
+    <properties>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+</project>
